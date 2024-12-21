@@ -1,6 +1,7 @@
 import sys
 import pygame
 import copy
+import random
 
 
 class Board:
@@ -11,7 +12,7 @@ class Board:
         self.board = [[0] * width for _ in range(height)]
         self.left = 10
         self.top = 10
-        self.cell_size = 10
+        self.cell_size = 30
 
     def set_view(self, left, top, cell_size):
         self.left = left
@@ -42,15 +43,17 @@ class Board:
 
 
 def main():
+    width, height, count_of_mines = map(int, input().split())
     pygame.init()
     pygame.display.set_caption('Игра «Жизнь»')
-    size = w, h = (1000, 1000)
+    board = Minesweeper(width, height, count_of_mines)
+    size = w, h = (10 + 10 + (width * board.cell_size), 10 + 10 + (height * board.cell_size))
     screen = pygame.display.set_mode(size)
     turn = False
     speed = 0
     tick = 0
     clock = pygame.time.Clock()
-    board = Life(90, 90)
+    board = Minesweeper(width, height, count_of_mines)
     running = True
     while running:
         for event in pygame.event.get():
@@ -75,40 +78,78 @@ def main():
     pygame.quit()
 
 
-class Life(Board):
-    def __init__(self, width, height):
+class Minesweeper(Board):
+    def __init__(self, width, height, count_of_mines):
         super().__init__(width, height)
+        self.count_of_mines = count_of_mines
+        self.mines_drop()
 
-    def on_click(self, cell):
-        self.board[cell[1]][cell[0]] = (self.board[cell[1]][cell[0]] + 1) % 2
+    def mines_drop(self):
+        list_of_mines = [-1] * ((self.width * self.height) - self.count_of_mines)
+        list_scecond = [10] * self.count_of_mines
+        list_of_mines.extend(list_scecond)
+        random.shuffle(list_of_mines)
+        for y in range(self.height):
+            for x in range(self.width):
+                self.board[y][x] = list_of_mines[x + (self.width * y)]
 
     def render(self, screen):
+        font = pygame.font.Font(None, 30)
+        colors = [pygame.Color('white'), pygame.Color('red')]
         for y in range(self.height):
             for x in range(self.width):
-                if self.board[y][x]:
-                    pygame.draw.rect(screen, pygame.Color('green'), (
+                if self.board[y][x] != 10 and self.board[y][x] != -1:
+                    screen.blit(font.render(f'{self.board[y][x]}', True, (0, 255, 0)),
+                                (x * self.cell_size + self.left, y * self.cell_size + self.top))
+                if self.board[y][x] == -1:
+                    pygame.draw.rect(screen, colors[0], (
+                        x * self.cell_size + self.left, y * self.cell_size + self.top, self.cell_size, self.cell_size),
+                                     1)
+                if self.board[y][x] == 10:
+                    pygame.draw.rect(screen, colors[1], (
                         x * self.cell_size + self.left, y * self.cell_size + self.top, self.cell_size, self.cell_size),
                                      0)
-                pygame.draw.rect(screen, pygame.Color('white'), (
-                    x * self.cell_size + self.left, y * self.cell_size + self.top, self.cell_size, self.cell_size), 1)
+                pygame.draw.rect(screen, colors[0], (
+                    x * self.cell_size + self.left, y * self.cell_size + self.top, self.cell_size, self.cell_size),
+                                 1)
 
-    def next_move(self):
-        tmp = copy.deepcopy(self.board)
-        for y in range(self.height):
-            for x in range(self.width):
-                cnt = 0
-                for j in range(-1, 2):
-                    for i in range(-1, 2):
-                        if x + i < 0 or x + i >= self.width or y + j < 0 or y + j >= self.height:
-                            continue
-                        else:
-                            cnt += self.board[y + j][x + i]
-                cnt -= self.board[y][x]
-                if cnt == 3:
-                    tmp[y][x] = 1
-                if cnt < 2 or cnt > 3:
-                    tmp[y][x] = 0
-        self.board = copy.deepcopy(tmp)
+    def get_click(self, mouse_pos):
+        cell = self.get_cell(mouse_pos)
+        self.open_cell(cell)
+
+    def open_cell(self, cell):
+        mins = 0
+        down = True
+        up = True
+        left = True
+        right = True
+        if cell:
+            if self.board[cell[1]][cell[0]] != 10:
+                if cell[1] + 1 > self.height - 1:
+                    down = False
+                if cell[1] - 1 < 0:
+                    up = False
+                if cell[0] + 1 > self.width - 1:
+                    right = False
+                if cell[0] - 1 < 0:
+                    left = False
+                if down and self.board[cell[1] + 1][cell[0]] == 10:
+                    mins += 1
+                if up and self.board[cell[1] - 1][cell[0]] == 10:
+                    mins += 1
+                if right and self.board[cell[1]][cell[0] + 1] == 10:
+                    mins += 1
+                if left and self.board[cell[1]][cell[0] - 1] == 10:
+                    mins += 1
+                if right and down and self.board[cell[1] + 1][cell[0] + 1] == 10:
+                    mins += 1
+                if down and left and self.board[cell[1] + 1][cell[0] - 1] == 10:
+                    mins += 1
+                if up and right and self.board[cell[1] - 1][cell[0] + 1] == 10:
+                    mins += 1
+                if up and left and self.board[cell[1] - 1][cell[0] - 1] == 10:
+                    mins += 1
+                self.board[cell[1]][cell[0]] = mins
 
 
 if __name__ == '__main__':
