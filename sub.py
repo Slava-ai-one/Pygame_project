@@ -53,7 +53,6 @@ def main():
     speed = 0
     tick = 0
     clock = pygame.time.Clock()
-    board = Minesweeper(width, height, count_of_mines)
     running = True
     while running:
         for event in pygame.event.get():
@@ -61,18 +60,8 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 board.get_click(event.pos)
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 or event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                turn = not turn
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
-                speed += 1
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
-                speed -= 1
         screen.fill(pygame.Color(0, 0, 0))
         board.render(screen)
-        if turn:
-            board.next_move()
-        if speed < 0:
-            speed = 1
         clock.tick(speed)
         pygame.display.flip()
     pygame.quit()
