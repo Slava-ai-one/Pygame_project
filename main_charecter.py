@@ -13,8 +13,17 @@ class hero:
         self.y = pos[1] // tile_size[1]
 
     def move(self, deltas):
+        #if floor == 1:
+        #    return None
+        #elif floor == 0:
         self.x += deltas[0]
         self.y += deltas[1]
+        #elif floor == 3:
+        #    print('A chest!')
+            #chest_open()
+        #elif floor == 2:
+        #    print('Next level!')
+            #next_level()
 
     def render(self, screen, cnt_2):
         char_1 = pygame.sprite.Group()
