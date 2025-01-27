@@ -1,6 +1,28 @@
 import sys
 
 import pygame
+import os
+
+from Prime_1 import load_image
+
+
+def load_image(name, color_key=None):
+    fullname = os.path.join('penis', name)
+    try:
+        image = pygame.image.load(fullname).convert()
+    except pygame.error as mes:
+        print(f'Не могу загрузить файл: {name}')
+        print(mes)
+        return
+    if color_key is not None:
+        image = image.convert()
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
 
 score = 0
 tile_size = (77, 99)
@@ -27,14 +49,14 @@ class Map:
         self.score = score
 
     def render(self, screen):
-        colors = [(17, 20, 120), (2, 11, 92), (0, 0, 0), (0, 125, 125)]
+        colors = [load_image('floor.png'), (2, 11, 92), (0, 0, 0), (0, 125, 125)]
         h = 0
         for y in range(self.current_v[0], self.current_v[1]):
             w = 0
             for x in range(self.current_h[0], self.current_h[1]):
                 #print((x, y, h, w), self.get_tale_id((x, y - 1)))
                 rect = pygame.Rect(w * self.tile_size[0], h * self.tile_size[1] - self.tile_size[1], self.tile_size[0], self.tile_size[1])
-                screen.fill(colors[self.get_tale_id((x, y - 1))], rect)
+                colors[self.get_tale_id((x, y - 1))].draw(screen)
                 w += 1
             h += 1
             #print(f'**** {self.current_v}'
