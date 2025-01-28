@@ -7,7 +7,7 @@ from Prime_1 import load_image
 
 
 def load_image(name, color_key=None):
-    fullname = os.path.join('penis', name)
+    fullname = os.path.join('pictures', name)
     try:
         image = pygame.image.load(fullname).convert()
     except pygame.error as mes:
