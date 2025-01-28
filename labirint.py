@@ -49,14 +49,17 @@ class Map:
         self.score = score
 
     def render(self, screen):
-        colors = [load_image('floor.png'), (2, 11, 92), (0, 0, 0), (0, 125, 125)]
+        images = [load_image('floor.png'), load_image('wall.png'), load_image('door.png'), load_image('chest.png')]
         h = 0
         for y in range(self.current_v[0], self.current_v[1]):
             w = 0
             for x in range(self.current_h[0], self.current_h[1]):
                 #print((x, y, h, w), self.get_tale_id((x, y - 1)))
-                rect = pygame.Rect(w * self.tile_size[0], h * self.tile_size[1] - self.tile_size[1], self.tile_size[0], self.tile_size[1])
-                colors[self.get_tale_id((x, y - 1))].draw(screen)
+                #rect = pygame.Rect(w * self.tile_size[0], h * self.tile_size[1] - self.tile_size[1], self.tile_size[0], self.tile_size[1])
+                rect = images[self.get_tale_id((x, y - 1))].get_rect()
+                rect.x = w * self.tile_size[0]
+                rect.y = h * self.tile_size[1] - self.tile_size[1]
+                screen.blit(images[self.get_tale_id((x, y - 1))], rect)
                 w += 1
             h += 1
             #print(f'**** {self.current_v}'

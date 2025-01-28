@@ -76,6 +76,7 @@ def start_screen():
 start_screen()
 def main():
     global labyrinth, curr_level
+    Time_left = 180
     pygame.init()
     pygame.display.set_caption('Инициализация игры')
     size = w, h = window_size
@@ -121,7 +122,10 @@ def main():
     cnt = 0
     side = 1
     flag_up = flag_down = flag_right = flag_left = False
-    to_right = 0
+    to_right = False
+    to_left = False
+    to_top = False
+    to_bottom = False
     cnt_3 = 0
     enemyActive = True
     MustMoveHero = 0
@@ -131,27 +135,27 @@ def main():
             print(event)
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+            #if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
              #   cnt += 1
-                flag_right = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
-                flag_right = False
+             #   flag_right = True
+            #if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
+            #    flag_right = False
 
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+            #if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
              #   cnt += 1
-                flag_left = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
-                flag_left = False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            #    flag_left = True
+            #if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
+            #    flag_left = False
+            #if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
              #   cnt += 1
-                flag_up = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_UP:
-                flag_up = False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
+            #    flag_up = True
+            #if event.type == pygame.KEYUP and event.key == pygame.K_UP:
+            #    flag_up = False
+            #if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
             #    cnt += 1
-                flag_down = True
-            if event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
-                flag_down = False
+            #    flag_down = True
+            #if event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
+            #    flag_down = False
             #if cnt % 10 == 0 and cnt != 0 and event.type == pygame.KEYDOWN:
             #    side = side * -1
             if event.type == pygame.KEYDOWN:
@@ -168,26 +172,40 @@ def main():
         main_curr_y = main_charecter.get_y()
         print('***')
         next_tale = 0
+        keys = pygame.key.get_pressed()
+        dx, dy = 0, 0
+        if keys[pygame.K_LEFT]:
+            dx = -1
+            flag_left = True
+        if keys[pygame.K_RIGHT]:
+            dx = 1
+            flag_right = True
+        if keys[pygame.K_UP]:
+            dy = -1
+            flag_up = True
+        if keys[pygame.K_DOWN]:
+            dy = 1
+            flag_down = True
         if MustMoveHero == 10:
             if flag_right and flag_up:
-                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y - 1) == 0:
-                    flag_up == False
-                    flag_right == False
+                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y - 1, ) == 0:
+                    flag_up = False
+                    flag_right = False
                     continue
             if flag_right and flag_down:
                 if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y + 1) == 0:
-                    flag_down == False
-                    flag_right == False
+                    flag_down = False
+                    flag_right = False
                     continue
             if flag_left and flag_up:
                 if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y - 1) == 0:
-                    flag_up == False
-                    flag_left == False
+                    flag_up = False
+                    flag_left = False
                     continue
             if flag_left and flag_down:
                 if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y + 1) == 0:
-                    flag_down == False
-                    flag_left == False
+                    flag_down = False
+                    flag_left = False
                     continue
             if flag_right:
                 cnt_2 += 1
@@ -199,6 +217,7 @@ def main():
                         main_charecter.move((1, 0))
                         #if labyrinth.update_map_right_left(0):
                         #    main_charecter.move((-1, 0))
+                flag_right = False
 
             if flag_left:
                 cnt_2 += 1
@@ -210,6 +229,7 @@ def main():
                         main_charecter.move((-1, 0))
                         #if labyrinth.update_map_right_left(1):
                         #    main_charecter.move((1, 0))
+                flag_left = False
 
             if flag_up:
                 cnt_2 += 1
@@ -219,6 +239,7 @@ def main():
                         update(2)
                     if int(main_charecter.get_y()) * tile_size[1] - 99 >= 0:
                         main_charecter.move((0, -1))
+                flag_up = False
 
             if flag_down:
                 cnt_2 += 1
@@ -230,6 +251,8 @@ def main():
                         main_charecter.move((0, 1))
                         #if labyrinth.update_map_top_bottom(0):
                         #    main_charecter.move((0, -1))
+                flag_down = False
+
             if next_tale == 2:
                 curr_level = (curr_level + 1) % 2
                 score = labyrinth.score
@@ -239,10 +262,14 @@ def main():
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
-        if scelet.get_x() == 12:
-            to_right = False
-        elif scelet.get_x() == 0:
+        if scelet.get_x()  > int(main_charecter.get_x()):
+            to_left = True
+        if scelet.get_x() < int(main_charecter.get_x()):
             to_right = True
+        if scelet.get_y() > int(main_charecter.get_y()):
+            to_top = True
+        if scelet.get_y() < int(main_charecter.get_y()):
+            to_bottom = True
         if scelet.get_x() >= 13 or scelet.get_x() < 0:
             enemyActive = False
         if scelet.get_x() < 13 and scelet.get_x() >= 0:
@@ -250,19 +277,46 @@ def main():
         if MustMoveEnemy == 40:
             if to_right and enemyActive:
                 scelet.move((1, 0))
-            elif not to_right and enemyActive:
+                to_right = False
+                to_left = False
+                to_top = False
+                to_bottom = False
+            if to_left and enemyActive:
                 scelet.move((-1, 0))
+                to_right = False
+                to_left = False
+                to_top = False
+                to_bottom = False
+            if to_top and enemyActive:
+                scelet.move((0, -1))
+                to_right = False
+                to_left = False
+                to_top = False
+                to_bottom = False
+            if to_bottom and enemyActive:
+                scelet.move((0, 1))
+                to_right = False
+                to_left = False
+                to_top = False
+                to_bottom = False
+
             MustMoveEnemy = 0
         else:
             MustMoveEnemy += 1
 
+        cnt += 1
+        if cnt % 120 == 0:
+            Time_left -= 1
 
-        #screen.fill(pygame.Color(0, 255, 255))
+
+        screen.fill(pygame.Color(0, 0, 0))
         score = labyrinth.score
         labyrinth.render(screen)
         main_charecter.render(screen, cnt_2)
         scelet.render(screen, cnt_2)
         all_sprites.draw(screen)
+        text = font.render(f"{Time_left // 60}:{Time_left % 60}", True, (100, 255, 100))
+        screen.blit(text, (550, 0))
         text = font.render(f"{score}", True, (100, 255, 100))
         screen.blit(text, (0, 0))
         pygame.time.Clock().tick(FPS)
