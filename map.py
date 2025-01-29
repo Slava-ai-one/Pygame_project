@@ -1,6 +1,8 @@
 import sys
 import pygame
 import os
+import sqlite3
+from PyQt6.QtWidgets import QInputDialog, QPushButton, QLineEdit, QWidget, QApplication, QMessageBox
 
 from labirint import Map
 from main_charecter import hero
@@ -77,6 +79,42 @@ def find_quick_path(map, start, end):
     else:
         return None
 
+class Registration_page(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setGeometry(460, 40, 1000, 1000)
+        self.setWindowTitle('Регистрация')
+
+        self.username_line_input = QLineEdit(self)
+        self.username_line_input.move(400, 300)
+        self.username_line_input.resize(200, 50)
+
+        self.password_line_input = QLineEdit(self)
+        self.password_line_input.move(400, 400)
+        self.password_line_input.resize(200, 50)
+
+        self.ready_button = QPushButton(self)
+        self.ready_button.setText('ВВЕСТИ')
+        self.ready_button.move(450, 475)
+        self.ready_button.resize(100, 25)
+        self.ready_button.clicked.connect(self.check_password)
+
+        self.con = sqlite3.connect('users_db.sqlite')
+
+
+    def check_password(self):
+        self.username = self.username_line_input.text()
+        self.password = self.password_line_input.text()
+        cur = self.con.cursor()
+        print(cur.execute(f"""select username from users""").fetchall())
+        if (str(self.username),) in cur.execute(f"""select username from users""").fetchall():
+            print(cur.execute(f"""select password from users where username is '{self.username}'""").fetchone())
+            if (self.password,) == cur.execute(f"""select password from users where username is '{self.username}'""").fetchone():
+                print('goyda')
+
 
 
 def start_screen():
@@ -105,6 +143,12 @@ def start_screen():
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return  # начинаем игру
         pygame.display.flip()
+
+
+app = QApplication(sys.argv)
+ex = Registration_page()
+ex.show()
+
 
 start_screen()
 def main():
@@ -150,6 +194,8 @@ def main():
     labyrinth.render(screen)
     main_charecter.render(screen, 0)
     scelet.render(screen, 0)
+    scelet_mask = pygame.mask.from_surface(scelet.cursor_image)
+    character_mask = pygame.mask.from_surface(main_charecter.cursor_image)
     running = True
     cnt_2 = 0
     cnt = 0
@@ -316,6 +362,8 @@ def main():
                 if next_path:
                     print(next_path)
                     scelet.move((next_path[0] - scelet.get_x(), next_path[1] - scelet.get_y()))
+                    if scelet.get_x() == main_charecter.get_x() and scelet.get_y() == main_charecter.get_y():
+                        print('#########')
             #    scelet.move((1, 0))
             #    to_right = False
             #    to_left = False
@@ -347,7 +395,6 @@ def main():
         cnt += 1
         if cnt % 120 == 0:
             Time_left -= 1
-
 
         screen.fill(pygame.Color(0, 0, 0))
         score = labyrinth.score
