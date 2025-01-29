@@ -47,6 +47,7 @@ def terminate():
 
 
 def find_quick_path(map, start, end):
+    err_count = 0
     start_path = start
     end_path = end
     sosedy = [(1, 0), (-1, 0), (0, -1), (0, 1)]
@@ -54,20 +55,27 @@ def find_quick_path(map, start, end):
     tales = {}
     curr_path = (start, start, 0)
     while curr_path[0] != end_path:
+        if err_count > 1000:
+            return None
         for i in range(4):
             if map.get_tale_invent(curr_path[0][0] + sosedy[i][0], curr_path[0][1] + sosedy[i][1]) == 0:
                 sosed = (curr_path[0][0] + sosedy[i][0], curr_path[0][1] + sosedy[i][1])
-                if sosed in tales:
+                if sosed in tales or (sosed, curr_path[0], (curr_path[2] + 1)) in next_path:
                     continue
                 next_path.append((sosed, curr_path[0], (curr_path[2] + 1)))
-        tales[curr_path[0]] = (curr_path[1], curr_path[2])
+                err_count += 1
+        tales[curr_path[0]] = (curr_path[0], curr_path[1], curr_path[2])
         curr_path = next_path[0]
         next_path.pop(0)
-        print(next_path)
     back_to_start_way = []
     while curr_path[0] != start_path:
         back_to_start_way.append(curr_path[0])
         curr_path = tales[curr_path[1]]
+    #print(back_to_start_way)
+    if back_to_start_way:
+        return back_to_start_way[-1]
+    else:
+        return None
 
 
 
@@ -157,7 +165,7 @@ def main():
     MustMoveEnemy = 0
     while running:
         for event in pygame.event.get():
-            print(event)
+            #print(event)
             if event.type == pygame.QUIT:
                 terminate()
             #if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
@@ -213,28 +221,28 @@ def main():
             flag_down = True
         if MustMoveHero == 10:
             if flag_right and flag_up:
-                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y - 1, ) == 0:
+                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y - 1, 1) == 0:
                     flag_up = False
                     flag_right = False
                     continue
             if flag_right and flag_down:
-                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y + 1) == 0:
+                if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y + 1, 1) == 0:
                     flag_down = False
                     flag_right = False
                     continue
             if flag_left and flag_up:
-                if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y - 1) == 0:
+                if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y - 1, 1) == 0:
                     flag_up = False
                     flag_left = False
                     continue
             if flag_left and flag_down:
-                if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y + 1) == 0:
+                if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y + 1, 1) == 0:
                     flag_down = False
                     flag_left = False
                     continue
             if flag_right:
                 cnt_2 += 1
-                next_tale = labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y)
+                next_tale = labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y, 1)
                 if next_tale == 0:
                     if main_curr_x >= 6:
                         update(0)
@@ -246,7 +254,7 @@ def main():
 
             if flag_left:
                 cnt_2 += 1
-                next_tale = labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y)
+                next_tale = labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y, 1)
                 if next_tale == 0:
                     if main_charecter.get_x() <= 6:
                         update(1)
@@ -258,7 +266,7 @@ def main():
 
             if flag_up:
                 cnt_2 += 1
-                next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y - 1)
+                next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y - 1, 1)
                 if next_tale == 0:
                     if main_charecter.get_y() <= 5:
                         update(2)
@@ -268,7 +276,7 @@ def main():
 
             if flag_down:
                 cnt_2 += 1
-                next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y + 1)
+                next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y + 1, 1)
                 if next_tale == 0:
                     if main_charecter.get_y() >= 5:
                         update(3)
@@ -287,7 +295,6 @@ def main():
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
-        find_quick_path(labyrinth, (scelet.get_x(), scelet.get_y()), (main_charecter.get_x(), main_charecter.get_y()))
         if scelet.get_x()  > int(main_charecter.get_x()):
             to_left = True
         if scelet.get_x() < int(main_charecter.get_x()):
@@ -298,33 +305,40 @@ def main():
             to_bottom = True
         if scelet.get_x() >= 13 or scelet.get_x() < 0:
             enemyActive = False
-        if scelet.get_x() < 13 and scelet.get_x() >= 0:
+        if scelet.get_y() >= 11 or scelet.get_y() < 0:
+            enemyActive = False
+        if scelet.get_x() < 13 and scelet.get_x() >= 0 and scelet.get_y() < 11 and scelet.get_y() >= 0:
             enemyActive = True
-        if MustMoveEnemy == 40:
-            if to_right and enemyActive:
-                scelet.move((1, 0))
-                to_right = False
-                to_left = False
-                to_top = False
-                to_bottom = False
-            if to_left and enemyActive:
-                scelet.move((-1, 0))
-                to_right = False
-                to_left = False
-                to_top = False
-                to_bottom = False
-            if to_top and enemyActive:
-                scelet.move((0, -1))
-                to_right = False
-                to_left = False
-                to_top = False
-                to_bottom = False
-            if to_bottom and enemyActive:
-                scelet.move((0, 1))
-                to_right = False
-                to_left = False
-                to_top = False
-                to_bottom = False
+        if MustMoveEnemy == 20:
+            if enemyActive:
+                next_path = find_quick_path(labyrinth, (scelet.get_x(), scelet.get_y()),
+                                            (main_charecter.get_x(), main_charecter.get_y()))
+                if next_path:
+                    print(next_path)
+                    scelet.move((next_path[0] - scelet.get_x(), next_path[1] - scelet.get_y()))
+            #    scelet.move((1, 0))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            #if to_left and enemyActive:
+            #    scelet.move((-1, 0))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            #if to_top and enemyActive:
+            #    scelet.move((0, -1))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            #if to_bottom and enemyActive:
+            #    scelet.move((0, 1))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
 
             MustMoveEnemy = 0
         else:

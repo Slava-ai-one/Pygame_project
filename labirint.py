@@ -49,17 +49,23 @@ class Map:
         self.score = score
 
     def render(self, screen):
-        images = [load_image('floor.png'), load_image('wall.png'), load_image('door.png'), load_image('chest.png')]
+        images = [load_image('floor.png'), load_image('wall.png'), load_image('door.png'), load_image('chest.png'), load_image('chest_open.png')]
         h = 0
         for y in range(self.current_v[0], self.current_v[1]):
             w = 0
             for x in range(self.current_h[0], self.current_h[1]):
                 #print((x, y, h, w), self.get_tale_id((x, y - 1)))
                 #rect = pygame.Rect(w * self.tile_size[0], h * self.tile_size[1] - self.tile_size[1], self.tile_size[0], self.tile_size[1])
-                rect = images[self.get_tale_id((x, y - 1))].get_rect()
-                rect.x = w * self.tile_size[0]
-                rect.y = h * self.tile_size[1] - self.tile_size[1]
-                screen.blit(images[self.get_tale_id((x, y - 1))], rect)
+                if (x, y - 1) in self.check_chests:
+                    rect = images[self.get_tale_id((x, y - 1))].get_rect()
+                    rect.x = w * self.tile_size[0]
+                    rect.y = h * self.tile_size[1] - self.tile_size[1]
+                    screen.blit(images[4], rect)
+                else:
+                    rect = images[self.get_tale_id((x, y - 1))].get_rect()
+                    rect.x = w * self.tile_size[0]
+                    rect.y = h * self.tile_size[1] - self.tile_size[1]
+                    screen.blit(images[self.get_tale_id((x, y - 1))], rect)
                 w += 1
             h += 1
             #print(f'**** {self.current_v}'
@@ -103,16 +109,19 @@ class Map:
         except Exception:
             return False
 
-    def get_tale_invent(self, x, y):
+    def get_tale_invent(self, x, y, player=False):
         if self.map[self.current_v[0] + y][self.current_h[0] + x] == 1:
             pass
-        if self.map[self.current_v[0] + y][self.current_h[0] + x] == 3:
-            if (self.current_v[0] + y, self.current_h[0] + x) in self.check_chests:
-                print("A already open chest!!!")
-                pass
-            else:
-                print("A new chest!!")
-                self.score += 1
-                self.check_chests.append((self.current_v[0] + y, self.current_h[0] + x))
-        print(self.map[self.current_v[0] + y][self.current_h[0] + x])
+        if self.map[self.current_v[0] + y][self.current_h[0] + x] in (3, 4):
+            if player:
+                if (self.current_h[0] + x, self.current_v[0] + y) in self.check_chests:
+                    print("A already open chest!!!")
+                    pass
+                else:
+                    print("A new chest!!")
+                    print(self.check_chests)
+                    self.score += 1
+                    self.check_chests.append((self.current_h[0] + x, self.current_v[0] + y))
+                    print(self.check_chests)
+        #print(self.map[self.current_v[0] + y][self.current_h[0] + x])
         return self.map[self.current_v[0] + y][self.current_h[0] + x]
