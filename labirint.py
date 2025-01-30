@@ -1,4 +1,5 @@
 import sys
+import sqlite3
 
 import pygame
 import os
@@ -29,6 +30,7 @@ tile_size = (77, 99)
 
 class Map:
     def __init__(self, filename, free_tiles, finish_tale, chest_tale):
+        self.con = sqlite3.connect('users_db.sqlite')
         self.map = []
         self.curr_map = []
         self.check_chests = []
@@ -49,7 +51,7 @@ class Map:
         self.score = score
 
     def render(self, screen):
-        images = [load_image('floor.png'), load_image('wall.png'), load_image('door.png'), load_image('chest.png'), load_image('chest_open.png')]
+        images = [load_image('floor.png'), load_image('wall.png'), load_image('door.png'), load_image('chest.png'), load_image('chest_open.png'), load_image('door_on_freedom.png')]
         h = 0
         for y in range(self.current_v[0], self.current_v[1]):
             w = 0
@@ -120,8 +122,26 @@ class Map:
                 else:
                     print("A new chest!!")
                     print(self.check_chests)
+                    cur = self.con.cursor()
                     self.score += 1
                     self.check_chests.append((self.current_h[0] + x, self.current_v[0] + y))
+                    cur.execute(f"""update users set points = {self.score} where username is '{self.username}'""")
                     print(self.check_chests)
+                    self.con.commit()
         #print(self.map[self.current_v[0] + y][self.current_h[0] + x])
         return self.map[self.current_v[0] + y][self.current_h[0] + x]
+
+    def give_username(self, username):
+        self.username = username
+
+    def score_minus_two(self):
+        self.score -= 2
+        cur = self.con.cursor()
+        cur.execute(f"""update users set points = {self.score} where username is '{self.username}'""")
+        self.con.commit()
+
+    def win(self, time):
+        cur = self.con.cursor()
+        cur.execute(f"""update users_points set points = {self.score}, set time = {time} where username is '{self.username}'""")
+        self.con.commit()
+

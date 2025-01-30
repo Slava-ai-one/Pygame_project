@@ -2,28 +2,31 @@ import sys
 import pygame
 import os
 import sqlite3
+
 from PyQt6.QtWidgets import QInputDialog, QPushButton, QLineEdit, QWidget, QApplication, QMessageBox
 
 from labirint import Map
 from main_charecter import hero
 from scecond_charecter import  sceleton
+from time_or_coins import Time_or_coins
 
 def load_level(level):
     return Map(f'{level}.txt', [0, 2], 2, 3)
 
 window_size = width, height = (1000, 1000)
-levels = ['First_level', 'Second_level']
+levels = ['First_level', 'Second_level', 'Thirthd_level']
 curr_level = 0
 FPS = 120
 tile_size = (77, 99)
 labyrinth = load_level(levels[curr_level])
 main_charecter = hero([450, 99])
 scelet = sceleton([250, 99])
+Time_left = 180
 
 pygame.init()
-pygame.display.set_caption('Инициализация игры')
+#pygame.display.set_caption('Инициализация игры')
 size = w, h = window_size
-screen = pygame.display.set_mode(size)
+#screen = pygame.display.set_mode(size)
 
 def update(naprav):
     if naprav == 0:
@@ -79,45 +82,9 @@ def find_quick_path(map, start, end):
     else:
         return None
 
-class Registration_page(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    def initUI(self):
-        self.setGeometry(460, 40, 1000, 1000)
-        self.setWindowTitle('Регистрация')
-
-        self.username_line_input = QLineEdit(self)
-        self.username_line_input.move(400, 300)
-        self.username_line_input.resize(200, 50)
-
-        self.password_line_input = QLineEdit(self)
-        self.password_line_input.move(400, 400)
-        self.password_line_input.resize(200, 50)
-
-        self.ready_button = QPushButton(self)
-        self.ready_button.setText('ВВЕСТИ')
-        self.ready_button.move(450, 475)
-        self.ready_button.resize(100, 25)
-        self.ready_button.clicked.connect(self.check_password)
-
-        self.con = sqlite3.connect('users_db.sqlite')
-
-
-    def check_password(self):
-        self.username = self.username_line_input.text()
-        self.password = self.password_line_input.text()
-        cur = self.con.cursor()
-        print(cur.execute(f"""select username from users""").fetchall())
-        if (str(self.username),) in cur.execute(f"""select username from users""").fetchall():
-            print(cur.execute(f"""select password from users where username is '{self.username}'""").fetchone())
-            if (self.password,) == cur.execute(f"""select password from users where username is '{self.username}'""").fetchone():
-                print('goyda')
-
-
 
 def start_screen():
+    screen = pygame.display.set_mode(size)
     intro_text = ["Правила игры",
                   "Задача игрока: выбраться из подземелья, собирая монеты",
                   "при встрече с противником нужно выбрать: жизнь или кошелек"]
@@ -145,30 +112,27 @@ def start_screen():
         pygame.display.flip()
 
 
-app = QApplication(sys.argv)
-ex = Registration_page()
-ex.show()
-
-
-start_screen()
-def main():
-    global labyrinth, curr_level
-    Time_left = 180
+def main(username):
+    global labyrinth, curr_level, size, Time_left
+    pygame.display.set_caption('Инициализация игры')
+    screen = pygame.display.set_mode(size)
     pygame.init()
     pygame.display.set_caption('Инициализация игры')
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
+    finalka = pygame.sprite.Group()
+    all_sprites = pygame.sprite.Group()
+    choise = Time_or_coins()
     x = 500
     y = 99
     x_2 = 200
     y_2 = 200
-    all_sprites = pygame.sprite.Group()
     monetka_image = pygame.image.load('monetcka.png')
     monetka_image = pygame.transform.scale(monetka_image, (50, 50))
     monetka = pygame.sprite.Sprite(all_sprites)
     monetka.image = monetka_image
     monetka.rect = monetka.image.get_rect()
-    monetka.rect.x = 30
+    monetka.rect.x = 50
     monetka.rect.y = 0
     char_1 = pygame.sprite.Group()
     char_2 = pygame.sprite.Group()
@@ -194,17 +158,17 @@ def main():
     labyrinth.render(screen)
     main_charecter.render(screen, 0)
     scelet.render(screen, 0)
-    scelet_mask = pygame.mask.from_surface(scelet.cursor_image)
-    character_mask = pygame.mask.from_surface(main_charecter.cursor_image)
     running = True
     cnt_2 = 0
     cnt = 0
     side = 1
     flag_up = flag_down = flag_right = flag_left = False
+    final_ready = False
     to_right = False
     to_left = False
     to_top = False
     to_bottom = False
+    choise_flag = False
     cnt_3 = 0
     enemyActive = True
     MustMoveHero = 0
@@ -333,11 +297,35 @@ def main():
                 flag_down = False
 
             if next_tale == 2:
-                curr_level = (curr_level + 1) % 2
+                curr_level = (curr_level + 1) % 3
                 score = labyrinth.score
                 labyrinth = load_level(levels[curr_level])
+                labyrinth.give_username(username)
                 labyrinth.score = score
                 print(curr_level)
+                if curr_level == 2:
+                    main_charecter.x = 5
+                    main_charecter.y = 1
+            if next_tale == 4:
+                score = labyrinth.score
+                labyrinth = load_level(levels[curr_level])
+                labyrinth.win(Time_left)
+                labyrinth.give_username(username)
+                finalka = pygame.sprite.Group()
+                all_sprites = pygame.sprite.Group()
+                choise = Time_or_coins()
+                final_image = pygame.image.load('final_page.png')
+                final = pygame.sprite.Sprite(finalka)
+                final.image = final_image
+                final.rect = final.image.get_rect()
+                final.rect.x = -1000
+                final.rect.y = 0
+                final_ready = True
+
+        if final_ready:
+            final.rect.x += 0.0083
+            print("jhfjg")
+
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
@@ -363,7 +351,22 @@ def main():
                     print(next_path)
                     scelet.move((next_path[0] - scelet.get_x(), next_path[1] - scelet.get_y()))
                     if scelet.get_x() == main_charecter.get_x() and scelet.get_y() == main_charecter.get_y():
+                        choise.show()
+                        choise_flag = True
                         print('#########')
+                if choise.get_cur_choise() != None and choise_flag:
+                    print(choise.get_cur_choise())
+                    #while not choise.get_cur_choise():
+                    #    print(choise.get_cur_choise())
+                    if choise.get_cur_choise() == 'time':
+                        Time_left -= 10
+                        choise_flag = False
+                        choise.reset_choise()
+                    if choise.get_cur_choise() == 'coins':
+                        labyrinth.score_minus_two()
+                        choise_flag = False
+                        choise.reset_choise()
+
             #    scelet.move((1, 0))
             #    to_right = False
             #    to_left = False
@@ -405,11 +408,8 @@ def main():
         text = font.render(f"{Time_left // 60}:{Time_left % 60}", True, (100, 255, 100))
         screen.blit(text, (550, 0))
         text = font.render(f"{score}", True, (100, 255, 100))
+        finalka.draw(screen)
         screen.blit(text, (0, 0))
         pygame.time.Clock().tick(FPS)
         pygame.display.flip()
     pygame.quit()
-
-
-if __name__ == '__main__':
-    sys.exit(main())
