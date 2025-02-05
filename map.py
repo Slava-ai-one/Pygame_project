@@ -120,7 +120,7 @@ def main(username):
     pygame.display.set_caption('Инициализация игры')
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
-    finalka = pygame.sprite.Group()
+    #finalka = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group()
     choise = Time_or_coins()
     x = 500
@@ -314,17 +314,17 @@ def main(username):
                 finalka = pygame.sprite.Group()
                 all_sprites = pygame.sprite.Group()
                 choise = Time_or_coins()
-                final_image = pygame.image.load('final_page.png')
-                final = pygame.sprite.Sprite(finalka)
-                final.image = final_image
-                final.rect = final.image.get_rect()
-                final.rect.x = -1000
-                final.rect.y = 0
-                final_ready = True
+                #final_image = pygame.image.load('final_page.png')
+                #final = pygame.sprite.Sprite(finalka)
+                #final.image = final_image
+                #final.rect = final.image.get_rect()
+                #final.rect.x = -1000
+                #final.rect.y = 0
+                #final_ready = True
 
-        if final_ready:
-            final.rect.x += 0.0083
-            print("jhfjg")
+        #if final_ready:
+        #    final.rect.x += 0.0083
+        #    print("jhfjg")
 
             MustMoveHero = 0
         else:
@@ -408,7 +408,7 @@ def main(username):
         text = font.render(f"{Time_left // 60}:{Time_left % 60}", True, (100, 255, 100))
         screen.blit(text, (550, 0))
         text = font.render(f"{score}", True, (100, 255, 100))
-        finalka.draw(screen)
+        #finalka.draw(screen)
         screen.blit(text, (0, 0))
         pygame.time.Clock().tick(FPS)
         pygame.display.flip()
