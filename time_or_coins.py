@@ -28,7 +28,7 @@ class Time_or_coins(QWidget):
     def answer(self):
         if self.sender().text() == 'Отнять время жизни':
             self.current_choise = 'time'
-        else:
+        elif self.sender().text() == 'Откупиться деньгами':
             self.current_choise = 'coins'
         self.hide()
 

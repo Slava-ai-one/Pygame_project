@@ -46,9 +46,9 @@ class hero:
         char_1 = pygame.sprite.Group()
         char_2 = pygame.sprite.Group()
         char_3 = pygame.sprite.Group()
-        self.cursor_image = hero.load_image('рыцарь3.png', -1)
-        cursor_image_2 = hero.load_image('рыцарь5.png', -1)
-        cursor_image_3 = hero.load_image('рыцарь6.png', -1)
+        self.cursor_image = load_image('рыцарь3.png', -1)
+        cursor_image_2 = load_image('рыцарь5.png', -1)
+        cursor_image_3 = load_image('рыцарь6.png', -1)
         cursor_3 = pygame.sprite.Sprite(char_3)
         cursor_3.image = cursor_image_3
         cursor_3.rect = cursor_3.image.get_rect()

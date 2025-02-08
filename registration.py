@@ -3,8 +3,9 @@ import pygame
 import os
 import sqlite3
 
-from PyQt6.QtWidgets import QInputDialog, QPushButton, QLineEdit, QWidget, QApplication, QMessageBox
-from map import find_quick_path, start_screen, main, labyrinth, Time_or_coins
+from PyQt6.QtWidgets import QInputDialog, QPushButton, QLineEdit, QWidget, QApplication, QMessageBox, QTableWidget, \
+    QTableWidgetItem, QLabel
+from map import find_quick_path, start_screen, main, labyrinth, Time_or_coins, end_win, terminate, end_lose
 
 
 class Registration_page(QWidget):
@@ -32,15 +33,15 @@ class Registration_page(QWidget):
     def check_user(self):
         self.username = str(self.username_line_input.text())
         cur = self.con.cursor()
-        print(cur.execute(f"""select username from users""").fetchall())
+        print(cur.execute(f"""select username from users_points""").fetchall())
         try:
-            print(cur.execute(f"""select points from users where username is '{self.username}'""").fetchone())
-            if cur.execute(f"""select points from users where username is '{self.username}'""").fetchone() == None:
+            print(cur.execute(f"""select points from users_points where username is '{self.username}'""").fetchone())
+            if cur.execute(f"""select points from users_points where username is '{self.username}'""").fetchone() == None:
                 self.mess = QMessageBox.question(self, 'A new user created!', 'New user profile has been created',
                                                  buttons=QMessageBox.StandardButton.Ok)
                 if self.mess == QMessageBox.StandardButton.Ok:
-                    new_user = (self.username, '0')
-                    cur.execute(f"""insert into users values(?, ?)""", new_user)
+                    new_user = (self.username, 0, 0)
+                    cur.execute(f"""insert into users_points values(?, ?, ?)""", new_user)
                     self.con.commit()
         except Exception:
             print('Error')
@@ -48,12 +49,53 @@ class Registration_page(QWidget):
             #if self.mess == QMessageBox.standardButton.Ok:
             #    cur.execute(f"""insert into users values (?, ?)""", new_user)
         start_screen()
-        self.update_user()
-        main(self.username)
         self.hide()
+        self.update_user()
+        ishod = main(self.username)
+        if ishod == 'win':
+            choise = end_win(self.username)
+            if choise == ('close'):
+                terminate()
+            else:
+                self.show_table()
+        else:
+            choise = end_lose(self.username)
+            if choise == ('close'):
+                terminate()
+            else:
+                self.show_table()
 
     def update_user(self):
         labyrinth.give_username(self.username)
+
+    def show_table(self):
+        self.username_line_input.hide()
+        self.ready_button.hide()
+        self.tableWidget = QTableWidget(self)
+        self.tableWidget.resize(900, 900)
+        self.tableWidget.move(50, 50)
+        self.username_label = QLabel(self)
+        self.username_label.setText(f'Ваше имя: {self.username}')
+        self.username_label.move(250, 10)
+        self.show()
+        cur = self.con.cursor()
+        try:
+            result = cur.execute(f"""select * from users_points 
+order by points DESC, time ASC""").fetchall()
+            self.tableWidget.setRowCount(len(result))
+            self.tableWidget.setColumnCount(len(result[0]))
+            self.tableWidget.setColumnWidth(0, 300)
+            self.tableWidget.setColumnWidth(1, 300)
+            self.tableWidget.setColumnWidth(2, 300)
+            self.tableWidget.setHorizontalHeaderLabels(['Имя пользователя', 'Собранные монеты', 'Время прохождения, в секундах'])
+            for i, elem in enumerate(result):
+                for j, value in enumerate(elem):
+                    if j == 2 and value == 0:
+                        value = 'Не смог выбраться'
+                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+        except Exception:
+            print('Error')
+
 
     def closeEvent(self, event):
         self.con.close()

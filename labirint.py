@@ -30,6 +30,7 @@ tile_size = (77, 99)
 
 class Map:
     def __init__(self, filename, free_tiles, finish_tale, chest_tale):
+        self.username = None
         self.con = sqlite3.connect('users_db.sqlite')
         self.map = []
         self.curr_map = []
@@ -140,8 +141,20 @@ class Map:
         cur.execute(f"""update users set points = {self.score} where username is '{self.username}'""")
         self.con.commit()
 
-    def win(self, time):
+    def win(self, time, score, win=True):
         cur = self.con.cursor()
-        cur.execute(f"""update users_points set points = {self.score}, set time = {time} where username is '{self.username}'""")
+        if win:
+            check = cur.execute(f"""select * from users_points where username is '{self.username}'""").fetchone()
+            if check:
+                cur.execute(f"""update users_points set points = {score}, time = {180 - time} where username is '{self.username}'""")
+            else:
+                cur.execute(f"""insert into users_points values ('{self.username}', {score}, {180 - time})""")
+        else:
+            check = cur.execute(f"""select * from users_points where username is '{self.username}'""").fetchone()
+            if check:
+                cur.execute(
+                    f"""update users_points set points = {score}, time = {0} where username is '{self.username}'""")
+            else:
+                cur.execute(f"""insert into users_points values ('{self.username}', {score}, {0})""")
         self.con.commit()
 

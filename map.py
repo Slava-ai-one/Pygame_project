@@ -1,17 +1,22 @@
 import sys
+import time
+
 import pygame
 import os
+import pymorphy3
 import sqlite3
 
 from PyQt6.QtWidgets import QInputDialog, QPushButton, QLineEdit, QWidget, QApplication, QMessageBox
 
 from labirint import Map
-from main_charecter import hero
-from scecond_charecter import  sceleton
+from main_charecter import hero, load_image
+from scecond_charecter import sceleton
 from time_or_coins import Time_or_coins
+
 
 def load_level(level):
     return Map(f'{level}.txt', [0, 2], 2, 3)
+
 
 window_size = width, height = (1000, 1000)
 levels = ['First_level', 'Second_level', 'Thirthd_level']
@@ -24,9 +29,11 @@ scelet = sceleton([250, 99])
 Time_left = 180
 
 pygame.init()
-#pygame.display.set_caption('Инициализация игры')
+# pygame.display.set_caption('Инициализация игры')
 size = w, h = window_size
-#screen = pygame.display.set_mode(size)
+
+
+# screen = pygame.display.set_mode(size)
 
 def update(naprav):
     if naprav == 0:
@@ -45,6 +52,7 @@ def update(naprav):
         if labyrinth.update_map_top_bottom(0):
             scelet.move((0, -1))
             main_charecter.move((0, -1))
+
 
 def terminate():
     pygame.quit()
@@ -76,7 +84,7 @@ def find_quick_path(map, start, end):
     while curr_path[0] != start_path:
         back_to_start_way.append(curr_path[0])
         curr_path = tales[curr_path[1]]
-    #print(back_to_start_way)
+    # print(back_to_start_way)
     if back_to_start_way:
         return back_to_start_way[-1]
     else:
@@ -89,7 +97,7 @@ def start_screen():
                   "Задача игрока: выбраться из подземелья, собирая монеты",
                   "при встрече с противником нужно выбрать: жизнь или кошелек"]
 
-    fon = pygame.transform.scale(hero.load_image('begin_page.png'), (w, h))
+    fon = pygame.transform.scale(load_image('begin_page.png'), (w, h))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 24)
     text_coord = 845
@@ -112,15 +120,125 @@ def start_screen():
         pygame.display.flip()
 
 
+def end_win(username):
+    intro_text = ["Если хотите увидеть таблицу лидеров, нажмите Space.",
+                  "Если хотите закрыть, нажмите Escape"]
+    con = sqlite3.connect('users_db.sqlite')
+    cur = con.cursor()
+    coins, time = map(int, (
+        cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone()))
+    print(coins, time,
+          cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone(),
+          sep='\n')
+    morph = pymorphy3.MorphAnalyzer()
+    worda = 'монета'
+    parsed_word_coins = morph.parse(worda)[0]
+    parsed_word_minut = morph.parse('минуту')[0]
+    parsed_word_second = morph.parse('секунду')[0]
+    result_text = [
+        f"Вы собрали {coins} {parsed_word_coins.make_agree_with_number(int(coins)).word}, сделав это за {time // 60:0>2} {parsed_word_minut.make_agree_with_number(time // 60).word} и {time % 60:0>2} {parsed_word_second.make_agree_with_number(time % 60).word}"]
+    finalka = pygame.sprite.Group()
+    final = load_image('final_page.png')
+    final_page = pygame.sprite.Sprite(finalka)
+    final_page.image = final
+    final_page.rect = final_page.image.get_rect()
+    final_page.rect.x = 0
+    final_page.rect.y = 0
+    star_image = load_image('star.png', -1)
+    for i in range(coins // 6):
+        star = pygame.sprite.Sprite(finalka)
+        star.image = star_image
+        star.rect = star.image.get_rect()
+        star.rect.x = 250 + (50 * i)
+        star.rect.y = 550
+
+    screen = pygame.display.set_mode(size)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                # terminate()
+                return 'close'
+            # elif event.type == pygame.KEYDOWN or \
+            #        event.type == pygame.MOUSEBUTTONDOWN:
+            #    return  # начинаем игру
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                # terminate()
+                return 'table'
+        finalka.draw(screen)
+        font_result = pygame.font.Font(None, 32)
+        text_result_coord = 625
+        for line in result_text:
+            string_rendered = font_result.render(line, 1, pygame.Color(253, 248, 111))
+            result_rect = string_rendered.get_rect()
+            text_result_coord += 10
+            result_rect.top = text_result_coord
+            result_rect.x = 250
+            text_result_coord += result_rect.height
+            screen.blit(string_rendered, result_rect)
+        font = pygame.font.Font(None, 30)
+        text_coord = 775
+        for line in intro_text:
+            string_rendered = font.render(line, 1, pygame.Color(253, 248, 111))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 250
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        pygame.display.flip()
+
+
+def end_lose(username):
+    intro_text = ["Если хотите увидеть таблицу лидеров, нажмите Space.",
+                  "Если хотите закрыть, нажмите Escape"]
+    con = sqlite3.connect('users_db.sqlite')
+    cur = con.cursor()
+    coins, time = map(int, (
+        cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone()))
+    print(coins, time,
+          cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone(),
+          sep='\n')
+    finalka = pygame.sprite.Group()
+    final = load_image('final_page_lose.png')
+    final_page = pygame.sprite.Sprite(finalka)
+    final_page.image = final
+    final_page.rect = final_page.image.get_rect()
+    final_page.rect.x = 0
+    final_page.rect.y = 0
+    screen = pygame.display.set_mode(size)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                # terminate()
+                return 'close'
+            # elif event.type == pygame.KEYDOWN or \
+            #        event.type == pygame.MOUSEBUTTONDOWN:
+            #    return  # начинаем игру
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                # terminate()
+                return 'table'
+        finalka.draw(screen)
+        font = pygame.font.Font(None, 30)
+        text_coord = 775
+        for line in intro_text:
+            string_rendered = font.render(line, 1, pygame.Color(253, 248, 111))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 250
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        pygame.display.flip()
+
+
+lost_time = time.time()
+
+
 def main(username):
     global labyrinth, curr_level, size, Time_left
     pygame.display.set_caption('Инициализация игры')
-    screen = pygame.display.set_mode(size)
-    pygame.init()
-    pygame.display.set_caption('Инициализация игры')
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
-    #finalka = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group()
     choise = Time_or_coins()
     x = 500
@@ -136,19 +254,19 @@ def main(username):
     monetka.rect.y = 0
     char_1 = pygame.sprite.Group()
     char_2 = pygame.sprite.Group()
-    cursor_image = hero.load_image('рыцарь3.png', -1)
-    cursor_image_2 = hero.load_image('рыцарь5.png', -1)
+    cursor_image = load_image('рыцарь3.png', -1)
+    cursor_image_2 = load_image('рыцарь5.png', -1)
     cursor_2 = pygame.sprite.Sprite(char_1)
     cursor_2.image = cursor_image_2
     cursor_2.rect = cursor_2.image.get_rect()
     cursor_2.rect.x = x
     cursor_2.rect.y = y
-    #not_cursor_image = load_image_scecond('рыцарь.png')
-    #not_cursor = pygame.sprite.Sprite(all_sprites)
-    #not_cursor.image = not_cursor_image
-    #not_cursor.rect = not_cursor.image.get_rect()
-    #not_cursor.rect.x = x_2
-    #not_cursor.rect.y = y_2
+    # not_cursor_image = load_image_scecond('рыцарь.png')
+    # not_cursor = pygame.sprite.Sprite(all_sprites)
+    # not_cursor.image = not_cursor_image
+    # not_cursor.rect = not_cursor.image.get_rect()
+    # not_cursor.rect.x = x_2
+    # not_cursor.rect.y = y_2
     font = pygame.font.Font(None, 50)
     cursor = pygame.sprite.Sprite(char_1)
     cursor.image = cursor_image
@@ -170,50 +288,60 @@ def main(username):
     to_bottom = False
     choise_flag = False
     cnt_3 = 0
+    cur_time = 0
     enemyActive = True
     MustMoveHero = 0
     MustMoveEnemy = 0
     while running:
         for event in pygame.event.get():
-            #print(event)
+            # print(event)
             if event.type == pygame.QUIT:
                 terminate()
-            #if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-             #   cnt += 1
-             #   flag_right = True
-            #if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                score = labyrinth.score
+                labyrinth = load_level(levels[curr_level])
+                labyrinth.give_username(username)
+                labyrinth.win(Time_left, score)
+                return 'win'
+            #   cnt += 1
+            #   flag_right = True
+            # if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
             #    flag_right = False
 
-            #if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-             #   cnt += 1
+            # if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+            #   cnt += 1
             #    flag_left = True
-            #if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
+            # if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
             #    flag_left = False
-            #if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-             #   cnt += 1
+            # if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            #   cnt += 1
             #    flag_up = True
-            #if event.type == pygame.KEYUP and event.key == pygame.K_UP:
+            # if event.type == pygame.KEYUP and event.key == pygame.K_UP:
             #    flag_up = False
-            #if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
+            # if event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN:
             #    cnt += 1
             #    flag_down = True
-            #if event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
+            # if event.type == pygame.KEYUP and event.key == pygame.K_DOWN:
             #    flag_down = False
-            #if cnt % 10 == 0 and cnt != 0 and event.type == pygame.KEYDOWN:
+            # if cnt % 10 == 0 and cnt != 0 and event.type == pygame.KEYDOWN:
             #    side = side * -1
             if event.type == pygame.KEYDOWN:
                 x_2 = x_2 + (10 * side)
-            #if event.type == pygame.KEYDOWN and event.key == pygame.K_KP_ENTER:
+            # if event.type == pygame.KEYDOWN and event.key == pygame.K_KP_ENTER:
             #    labyrinth.get_tale_invent(main_charecter.get_x(), main_charecter.get_y())
-        #not_cursor.rect.x = x_2
-        #not_cursor.rect.y = y_2
+        # not_cursor.rect.x = x_2
+        # not_cursor.rect.y = y_2
+        current_time = int(time.time() - lost_time)
+        if current_time != cur_time:
+            Time_left -= 1
+            cur_time = current_time
         cursor.rect.x = x
         cursor.rect.y = y
         cursor_2.rect.x = x
         cursor_2.rect.y = y
         main_curr_x = main_charecter.get_x()
         main_curr_y = main_charecter.get_y()
-        print('***')
+        # print('***')
         next_tale = 0
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -258,7 +386,7 @@ def main(username):
                         update(0)
                     if int(main_charecter.get_x()) * tile_size[0] + 77 <= w:
                         main_charecter.move((1, 0))
-                        #if labyrinth.update_map_right_left(0):
+                        # if labyrinth.update_map_right_left(0):
                         #    main_charecter.move((-1, 0))
                 flag_right = False
 
@@ -270,7 +398,7 @@ def main(username):
                         update(1)
                     if int(main_charecter.get_x()) * tile_size[0] - 77 >= 0:
                         main_charecter.move((-1, 0))
-                        #if labyrinth.update_map_right_left(1):
+                        # if labyrinth.update_map_right_left(1):
                         #    main_charecter.move((1, 0))
                 flag_left = False
 
@@ -292,9 +420,10 @@ def main(username):
                         update(3)
                     if int(main_charecter.get_y()) * tile_size[1] + 99 + 99 <= h:
                         main_charecter.move((0, 1))
-                        #if labyrinth.update_map_top_bottom(0):
+                        # if labyrinth.update_map_top_bottom(0):
                         #    main_charecter.move((0, -1))
                 flag_down = False
+            print(next_tale)
 
             if next_tale == 2:
                 curr_level = (curr_level + 1) % 3
@@ -303,33 +432,30 @@ def main(username):
                 labyrinth.give_username(username)
                 labyrinth.score = score
                 print(curr_level)
+                if curr_level == 1:
+                    main_charecter.x = 5
+                    main_charecter.y = 1
                 if curr_level == 2:
                     main_charecter.x = 5
                     main_charecter.y = 1
-            if next_tale == 4:
+            if next_tale == 5:
                 score = labyrinth.score
                 labyrinth = load_level(levels[curr_level])
-                labyrinth.win(Time_left)
                 labyrinth.give_username(username)
-                finalka = pygame.sprite.Group()
-                all_sprites = pygame.sprite.Group()
-                choise = Time_or_coins()
-                #final_image = pygame.image.load('final_page.png')
-                #final = pygame.sprite.Sprite(finalka)
-                #final.image = final_image
-                #final.rect = final.image.get_rect()
-                #final.rect.x = -1000
-                #final.rect.y = 0
-                #final_ready = True
+                labyrinth.win(Time_left, score)
+                return 'win'
+            if Time_left <= 0:
+                labyrinth.win(Time_left, score, False)
+                return 'lose'
 
-        #if final_ready:
-        #    final.rect.x += 0.0083
-        #    print("jhfjg")
+            # if final_ready:
+            #    final.rect.x += 0.0083
+            #    print("jhfjg")
 
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
-        if scelet.get_x()  > int(main_charecter.get_x()):
+        if scelet.get_x() > int(main_charecter.get_x()):
             to_left = True
         if scelet.get_x() < int(main_charecter.get_x()):
             to_right = True
@@ -356,7 +482,7 @@ def main(username):
                         print('#########')
                 if choise.get_cur_choise() != None and choise_flag:
                     print(choise.get_cur_choise())
-                    #while not choise.get_cur_choise():
+                    # while not choise.get_cur_choise():
                     #    print(choise.get_cur_choise())
                     if choise.get_cur_choise() == 'time':
                         Time_left -= 10
@@ -372,19 +498,19 @@ def main(username):
             #    to_left = False
             #    to_top = False
             #    to_bottom = False
-            #if to_left and enemyActive:
+            # if to_left and enemyActive:
             #    scelet.move((-1, 0))
             #    to_right = False
             #    to_left = False
             #    to_top = False
             #    to_bottom = False
-            #if to_top and enemyActive:
+            # if to_top and enemyActive:
             #    scelet.move((0, -1))
             #    to_right = False
             #    to_left = False
             #    to_top = False
             #    to_bottom = False
-            #if to_bottom and enemyActive:
+            # if to_bottom and enemyActive:
             #    scelet.move((0, 1))
             #    to_right = False
             #    to_left = False
@@ -395,20 +521,15 @@ def main(username):
         else:
             MustMoveEnemy += 1
 
-        cnt += 1
-        if cnt % 120 == 0:
-            Time_left -= 1
-
         screen.fill(pygame.Color(0, 0, 0))
         score = labyrinth.score
         labyrinth.render(screen)
         main_charecter.render(screen, cnt_2)
         scelet.render(screen, cnt_2)
         all_sprites.draw(screen)
-        text = font.render(f"{Time_left // 60}:{Time_left % 60}", True, (100, 255, 100))
+        text = font.render(f"{Time_left // 60:0>2}:{Time_left % 60:0>2}", True, (100, 255, 100))
         screen.blit(text, (550, 0))
         text = font.render(f"{score}", True, (100, 255, 100))
-        #finalka.draw(screen)
         screen.blit(text, (0, 0))
         pygame.time.Clock().tick(FPS)
         pygame.display.flip()
