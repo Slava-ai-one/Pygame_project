@@ -68,7 +68,19 @@ class Registration_page(QWidget):
     def update_user(self):
         labyrinth.give_username(self.username)
 
+    #def return_registration(self):
+    #    self.restart_button.hide()
+    #    self.username_line_input.show()
+    #    self.ready_button.show()
+    #    self.username_label.hide()
+    #    self.tableWidget.hide()
+
     def show_table(self):
+        #self.restart_button = QPushButton(self)
+        #self.restart_button.move(400, 960)
+        #self.restart_button.resize(200, 25)
+        #self.restart_button.setText('Сыграть заново')
+        #self.restart_button.clicked.connect(self.return_registration)
         self.username_line_input.hide()
         self.ready_button.hide()
         self.tableWidget = QTableWidget(self)
@@ -84,9 +96,9 @@ class Registration_page(QWidget):
 order by points DESC, time ASC""").fetchall()
             self.tableWidget.setRowCount(len(result))
             self.tableWidget.setColumnCount(len(result[0]))
-            self.tableWidget.setColumnWidth(0, 300)
-            self.tableWidget.setColumnWidth(1, 300)
-            self.tableWidget.setColumnWidth(2, 300)
+            self.tableWidget.setColumnWidth(0, 295)
+            self.tableWidget.setColumnWidth(1, 295)
+            self.tableWidget.setColumnWidth(2, 295)
             self.tableWidget.setHorizontalHeaderLabels(['Имя пользователя', 'Собранные монеты', 'Время прохождения, в секундах'])
             for i, elem in enumerate(result):
                 for j, value in enumerate(elem):

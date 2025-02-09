@@ -24,8 +24,9 @@ curr_level = 0
 FPS = 120
 tile_size = (77, 99)
 labyrinth = load_level(levels[curr_level])
-main_charecter = hero([450, 99])
-scelet = sceleton([250, 99])
+main_charecter = hero([539, 495])
+scelet_enter = sceleton([847, 1089])
+scelet_exit = sceleton([1155, 5247])
 Time_left = 180
 
 pygame.init()
@@ -38,20 +39,33 @@ size = w, h = window_size
 def update(naprav):
     if naprav == 0:
         if labyrinth.update_map_right_left(0):
-            scelet.move((-1, 0))
-            main_charecter.move((-1, 0))
+            #scelet.move((-1, 0))
+            scelet_enter.x -= 1
+            scelet_exit.x -= 1
+            main_charecter.x -= 1
+            #main_charecter.move((-1, 0))
+
     elif naprav == 1:
         if labyrinth.update_map_right_left(1):
-            scelet.move((1, 0))
-            main_charecter.move((1, 0))
+            #scelet.move((1, 0))
+            scelet_enter.x += 1
+            scelet_exit.x += 1
+            main_charecter.x += 1
+            #main_charecter.move((1, 0))
     elif naprav == 2:
         if labyrinth.update_map_top_bottom(1):
-            scelet.move((0, 1))
-            main_charecter.move((0, 1))
+            #scelet.move((0, 1))
+            scelet_enter.y += 1
+            scelet_exit.y += 1
+            main_charecter.y += 1
+            #main_charecter.move((0, 1))
     elif naprav == 3:
         if labyrinth.update_map_top_bottom(0):
-            scelet.move((0, -1))
-            main_charecter.move((0, -1))
+            #scelet.move((0, -1))
+            scelet_enter.y -= 1
+            scelet_exit.y -= 1
+            main_charecter.y -= 1
+            #main_charecter.move((0, -1))
 
 
 def terminate():
@@ -94,8 +108,10 @@ def find_quick_path(map, start, end):
 def start_screen():
     screen = pygame.display.set_mode(size)
     intro_text = ["Правила игры",
-                  "Задача игрока: выбраться из подземелья, собирая монеты",
-                  "при встрече с противником нужно выбрать: жизнь или кошелек"]
+                  "Задача игрока: пройти три зала и выбраться   ",
+                  "из подземелья, собирая монеты. При встрече  ",
+                  "с противником нужно выбрать: жизнь или кошелек"]
+
 
     fon = pygame.transform.scale(load_image('begin_page.png'), (w, h))
     screen.blit(fon, (0, 0))
@@ -147,10 +163,10 @@ def end_win(username):
     star_image = load_image('star.png', -1)
     for i in range(coins // 6):
         star = pygame.sprite.Sprite(finalka)
-        star.image = star_image
+        star.image = pygame.transform.scale(star_image, (75, 75))
         star.rect = star.image.get_rect()
-        star.rect.x = 250 + (50 * i)
-        star.rect.y = 550
+        star.rect.x = 400 + (85 * i)
+        star.rect.y = 500
 
     screen = pygame.display.set_mode(size)
     while True:
@@ -230,6 +246,9 @@ def end_lose(username):
             screen.blit(string_rendered, intro_rect)
         pygame.display.flip()
 
+#def reset_timer():
+#    global Time_left
+#    Time_left = 180
 
 lost_time = time.time()
 
@@ -250,7 +269,7 @@ def main(username):
     monetka = pygame.sprite.Sprite(all_sprites)
     monetka.image = monetka_image
     monetka.rect = monetka.image.get_rect()
-    monetka.rect.x = 50
+    monetka.rect.x = 70
     monetka.rect.y = 0
     char_1 = pygame.sprite.Group()
     char_2 = pygame.sprite.Group()
@@ -274,8 +293,9 @@ def main(username):
     cursor.rect.x = x
     cursor.rect.y = y
     labyrinth.render(screen)
-    main_charecter.render(screen, 0)
-    scelet.render(screen, 0)
+    main_charecter.render(screen)
+    scelet_exit.render(screen)
+    scelet_enter.render(screen)
     running = True
     cnt_2 = 0
     cnt = 0
@@ -289,7 +309,8 @@ def main(username):
     choise_flag = False
     cnt_3 = 0
     cur_time = 0
-    enemyActive = True
+    enemyActive_enter = True
+    enemyActive_exit = False
     MustMoveHero = 0
     MustMoveEnemy = 0
     while running:
@@ -362,23 +383,23 @@ def main(username):
                 if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y - 1, 1) == 0:
                     flag_up = False
                     flag_right = False
-                    continue
+                    pass
             if flag_right and flag_down:
                 if not labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y + 1, 1) == 0:
                     flag_down = False
                     flag_right = False
-                    continue
+                    pass
             if flag_left and flag_up:
                 if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y - 1, 1) == 0:
                     flag_up = False
                     flag_left = False
-                    continue
+                    pass
             if flag_left and flag_down:
                 if not labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y + 1, 1) == 0:
                     flag_down = False
                     flag_left = False
-                    continue
-            if flag_right:
+                    pass
+            if flag_right and not choise_flag:
                 cnt_2 += 1
                 next_tale = labyrinth.get_tale_invent(main_curr_x + 1, main_curr_y, 1)
                 if next_tale == 0:
@@ -386,11 +407,9 @@ def main(username):
                         update(0)
                     if int(main_charecter.get_x()) * tile_size[0] + 77 <= w:
                         main_charecter.move((1, 0))
-                        # if labyrinth.update_map_right_left(0):
-                        #    main_charecter.move((-1, 0))
                 flag_right = False
 
-            if flag_left:
+            if flag_left and not choise_flag:
                 cnt_2 += 1
                 next_tale = labyrinth.get_tale_invent(main_curr_x - 1, main_curr_y, 1)
                 if next_tale == 0:
@@ -398,11 +417,9 @@ def main(username):
                         update(1)
                     if int(main_charecter.get_x()) * tile_size[0] - 77 >= 0:
                         main_charecter.move((-1, 0))
-                        # if labyrinth.update_map_right_left(1):
-                        #    main_charecter.move((1, 0))
                 flag_left = False
 
-            if flag_up:
+            if flag_up and not choise_flag:
                 cnt_2 += 1
                 next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y - 1, 1)
                 if next_tale == 0:
@@ -412,7 +429,7 @@ def main(username):
                         main_charecter.move((0, -1))
                 flag_up = False
 
-            if flag_down:
+            if flag_down and not choise_flag:
                 cnt_2 += 1
                 next_tale = labyrinth.get_tale_invent(main_curr_x, main_curr_y + 1, 1)
                 if next_tale == 0:
@@ -420,8 +437,6 @@ def main(username):
                         update(3)
                     if int(main_charecter.get_y()) * tile_size[1] + 99 + 99 <= h:
                         main_charecter.move((0, 1))
-                        # if labyrinth.update_map_top_bottom(0):
-                        #    main_charecter.move((0, -1))
                 flag_down = False
             print(next_tale)
 
@@ -433,6 +448,10 @@ def main(username):
                 labyrinth.score = score
                 print(curr_level)
                 if curr_level == 1:
+                    scelet_enter.x = 18
+                    scelet_enter.y = 14
+                    scelet_exit.x = 32
+                    scelet_exit.y = 48
                     main_charecter.x = 5
                     main_charecter.y = 1
                 if curr_level == 2:
@@ -455,28 +474,29 @@ def main(username):
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
-        if scelet.get_x() > int(main_charecter.get_x()):
+        if scelet_enter.get_x() > int(main_charecter.get_x()):
             to_left = True
-        if scelet.get_x() < int(main_charecter.get_x()):
+        if scelet_enter.get_x() < int(main_charecter.get_x()):
             to_right = True
-        if scelet.get_y() > int(main_charecter.get_y()):
+        if scelet_enter.get_y() > int(main_charecter.get_y()):
             to_top = True
-        if scelet.get_y() < int(main_charecter.get_y()):
+        if scelet_enter.get_y() < int(main_charecter.get_y()):
             to_bottom = True
-        if scelet.get_x() >= 13 or scelet.get_x() < 0:
-            enemyActive = False
-        if scelet.get_y() >= 11 or scelet.get_y() < 0:
-            enemyActive = False
-        if scelet.get_x() < 13 and scelet.get_x() >= 0 and scelet.get_y() < 11 and scelet.get_y() >= 0:
-            enemyActive = True
+        if scelet_enter.get_x() >= 13 or scelet_enter.get_x() < 0:
+            enemyActive_enter = False
+        if scelet_enter.get_y() >= 11 or scelet_enter.get_y() < 0:
+            enemyActive_enter = False
+        if scelet_enter.get_x() < 13 and scelet_enter.get_x() >= 0 and scelet_enter.get_y() < 11 and scelet_enter.get_y() >= 0:
+            enemyActive_enter = True
         if MustMoveEnemy == 20:
-            if enemyActive:
-                next_path = find_quick_path(labyrinth, (scelet.get_x(), scelet.get_y()),
+            MustMoveEnemy = 0
+            if enemyActive_enter:
+                next_path = find_quick_path(labyrinth, (scelet_enter.get_x(), scelet_enter.get_y()),
                                             (main_charecter.get_x(), main_charecter.get_y()))
                 if next_path:
                     print(next_path)
-                    scelet.move((next_path[0] - scelet.get_x(), next_path[1] - scelet.get_y()))
-                    if scelet.get_x() == main_charecter.get_x() and scelet.get_y() == main_charecter.get_y():
+                    scelet_enter.move((next_path[0] - scelet_enter.get_x(), next_path[1] - scelet_enter.get_y()))
+                    if scelet_enter.get_x() == main_charecter.get_x() and scelet_enter.get_y() == main_charecter.get_y():
                         choise.show()
                         choise_flag = True
                         print('#########')
@@ -487,10 +507,12 @@ def main(username):
                     if choise.get_cur_choise() == 'time':
                         Time_left -= 10
                         choise_flag = False
+                        MustMoveEnemy = -100
                         choise.reset_choise()
                     if choise.get_cur_choise() == 'coins':
                         labyrinth.score_minus_two()
                         choise_flag = False
+                        MustMoveEnemy = -100
                         choise.reset_choise()
 
             #    scelet.move((1, 0))
@@ -517,15 +539,82 @@ def main(username):
             #    to_top = False
             #    to_bottom = False
 
+        else:
+            MustMoveEnemy += 1
+        if scelet_exit.get_x() > int(main_charecter.get_x()):
+            to_left = True
+        if scelet_exit.get_x() < int(main_charecter.get_x()):
+            to_right = True
+        if scelet_exit.get_y() > int(main_charecter.get_y()):
+            to_top = True
+        if scelet_exit.get_y() < int(main_charecter.get_y()):
+            to_bottom = True
+        if scelet_exit.get_x() >= 13 or scelet_exit.get_x() < 0:
+            enemyActive_exit = False
+        if scelet_exit.get_y() >= 11 or scelet_exit.get_y() < 0:
+            enemyActive_exit = False
+        if scelet_exit.get_x() < 13 and scelet_exit.get_x() >= 0 and scelet_exit.get_y() < 11 and scelet_exit.get_y() >= 0:
+            enemyActive_exit = True
+        if MustMoveEnemy == 20:
             MustMoveEnemy = 0
+            if enemyActive_exit:
+                next_path = find_quick_path(labyrinth, (scelet_exit.get_x(), scelet_exit.get_y()),
+                                            (main_charecter.get_x(), main_charecter.get_y()))
+                if next_path:
+                    print(next_path)
+                    scelet_exit.move((next_path[0] - scelet_exit.get_x(), next_path[1] - scelet_exit.get_y()))
+                    if scelet_exit.get_x() == main_charecter.get_x() and scelet_exit.get_y() == main_charecter.get_y():
+                        choise.show()
+                        choise_flag = True
+                        print('#########')
+                if choise.get_cur_choise() != None and choise_flag:
+                    print(choise.get_cur_choise())
+                    # while not choise.get_cur_choise():
+                    #    print(choise.get_cur_choise())
+                    if choise.get_cur_choise() == 'time':
+                        Time_left -= 10
+                        choise_flag = False
+                        MustMoveEnemy = -100
+                        choise.reset_choise()
+                    if choise.get_cur_choise() == 'coins':
+                        labyrinth.score_minus_two()
+                        choise_flag = False
+                        MustMoveEnemy = -100
+                        choise.reset_choise()
+
+            #    scelet.move((1, 0))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            # if to_left and enemyActive:
+            #    scelet.move((-1, 0))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            # if to_top and enemyActive:
+            #    scelet.move((0, -1))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+            # if to_bottom and enemyActive:
+            #    scelet.move((0, 1))
+            #    to_right = False
+            #    to_left = False
+            #    to_top = False
+            #    to_bottom = False
+
         else:
             MustMoveEnemy += 1
 
         screen.fill(pygame.Color(0, 0, 0))
         score = labyrinth.score
         labyrinth.render(screen)
-        main_charecter.render(screen, cnt_2)
-        scelet.render(screen, cnt_2)
+        main_charecter.render(screen)
+        scelet_enter.render(screen)
+        scelet_exit.render(screen)
         all_sprites.draw(screen)
         text = font.render(f"{Time_left // 60:0>2}:{Time_left % 60:0>2}", True, (100, 255, 100))
         screen.blit(text, (550, 0))

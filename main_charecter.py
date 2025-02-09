@@ -25,6 +25,7 @@ def load_image(name, color_key=None):
 class hero:
 
     def __init__(self, pos):
+        self.count = 0
         self.pos = pos
         self.x = pos[0] // tile_size[0]
         self.y = pos[1] // tile_size[1]
@@ -35,6 +36,7 @@ class hero:
         # elif floor == 0:
         self.x += deltas[0]
         self.y += deltas[1]
+        self.count += 1
         # elif floor == 3:
         #    print('A chest!')
         # chest_open()
@@ -42,11 +44,11 @@ class hero:
         #    print('Next level!')
         # next_level()
 
-    def render(self, screen, cnt_2):
+    def render(self, screen):
         char_1 = pygame.sprite.Group()
         char_2 = pygame.sprite.Group()
         char_3 = pygame.sprite.Group()
-        self.cursor_image = load_image('рыцарь3.png', -1)
+        cursor_image = load_image('рыцарь3.png', -1)
         cursor_image_2 = load_image('рыцарь5.png', -1)
         cursor_image_3 = load_image('рыцарь6.png', -1)
         cursor_3 = pygame.sprite.Sprite(char_3)
@@ -60,12 +62,12 @@ class hero:
         cursor_2.rect.x = self.x * tile_size[0]
         cursor_2.rect.y = self.y * tile_size[1]
         cursor = pygame.sprite.Sprite(char_1)
-        cursor.image = self.cursor_image
+        cursor.image = cursor_image
         cursor.rect = cursor.image.get_rect()
         cursor.rect.x = self.x * tile_size[0]
         cursor.rect.y = self.y * tile_size[1]
         animation = [char_1, char_2, char_3]
-        animation[cnt_2 % 3].draw(screen)
+        animation[self.count % 3].draw(screen)
         # if cnt_2 % 2 == 0:
         #    char_1.draw(screen)
         # else:

@@ -38,3 +38,6 @@ class Time_or_coins(QWidget):
     def reset_choise(self):
         self.current_choise = None
 
+    def closeEvent(self, event):
+        event.ignore()
+
