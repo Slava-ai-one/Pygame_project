@@ -137,6 +137,12 @@ def start_screen():
 
 
 def end_win(username):
+    pygame.init()
+    size = w, h = window_size
+    screen = pygame.display.set_mode(size)
+    pygame.mixer.music.load('triumf.mp3')
+    pygame.mixer.music.play(1)
+    pygame.mixer.music.set_volume(0.3)
     intro_text = ["Если хотите увидеть таблицу лидеров, нажмите Space.",
                   "Если хотите закрыть, нажмите Escape"]
     con = sqlite3.connect('users_db.sqlite')
@@ -173,12 +179,14 @@ def end_win(username):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # terminate()
+                pygame.quit()
                 return 'close'
             # elif event.type == pygame.KEYDOWN or \
             #        event.type == pygame.MOUSEBUTTONDOWN:
             #    return  # начинаем игру
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 # terminate()
+                pygame.quit()
                 return 'table'
         finalka.draw(screen)
         font_result = pygame.font.Font(None, 32)
@@ -205,6 +213,12 @@ def end_win(username):
 
 
 def end_lose(username):
+    pygame.init()
+    size = w, h = window_size
+    screen = pygame.display.set_mode(size)
+    pygame.mixer.music.load('sad_fanfar.mp3')
+    pygame.mixer.music.play(1)
+    pygame.mixer.music.set_volume(0.3)
     intro_text = ["Если хотите увидеть таблицу лидеров, нажмите Space.",
                   "Если хотите закрыть, нажмите Escape"]
     con = sqlite3.connect('users_db.sqlite')
@@ -226,12 +240,14 @@ def end_lose(username):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 # terminate()
+                pygame.quit()
                 return 'close'
             # elif event.type == pygame.KEYDOWN or \
             #        event.type == pygame.MOUSEBUTTONDOWN:
             #    return  # начинаем игру
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 # terminate()
+                pygame.quit()
                 return 'table'
         finalka.draw(screen)
         font = pygame.font.Font(None, 30)
@@ -255,6 +271,10 @@ lost_time = time.time()
 
 def main(username):
     global labyrinth, curr_level, size, Time_left
+    if username:
+        pygame.mixer.music.load('dungeon_musik_2.mp3')
+        pygame.mixer.music.play(1)
+        pygame.mixer.music.set_volume(0.3)
     pygame.display.set_caption('Инициализация игры')
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
@@ -323,6 +343,7 @@ def main(username):
                 labyrinth = load_level(levels[curr_level])
                 labyrinth.give_username(username)
                 labyrinth.win(Time_left, score)
+                pygame.quit()
                 return 'win'
             #   cnt += 1
             #   flag_right = True
@@ -455,6 +476,10 @@ def main(username):
                     main_charecter.x = 5
                     main_charecter.y = 1
                 if curr_level == 2:
+                    scelet_enter.x = 22
+                    scelet_enter.y = 22
+                    scelet_exit.x = 22
+                    scelet_exit.y = 22
                     main_charecter.x = 5
                     main_charecter.y = 1
             if next_tale == 5:
@@ -462,9 +487,11 @@ def main(username):
                 labyrinth = load_level(levels[curr_level])
                 labyrinth.give_username(username)
                 labyrinth.win(Time_left, score)
+                pygame.quit()
                 return 'win'
             if Time_left <= 0:
                 labyrinth.win(Time_left, score, False)
+                pygame.quit()
                 return 'lose'
 
             # if final_ready:
