@@ -4,7 +4,6 @@ import time
 from random import randint
 import sqlite3
 
-from interface import screen
 
 pygame.init()
 game_over = False
