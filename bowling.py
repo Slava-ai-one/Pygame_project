@@ -83,6 +83,7 @@ for i in range(7):
     x3 += 55
 
 def bowling(username):
+    pygame.display.set_caption('Bowling')
     if username != '':
         pygame.mixer.music.load('4-track-4.mp3')
         pygame.mixer.music.play(-1)
