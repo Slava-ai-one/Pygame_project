@@ -118,7 +118,7 @@ def bowling(username):
         if move_left == True and platform.rect.x != 0:
             platform.rect.x -= 5
 
-        screen.fill(pygame.Color(199, 21, 133))
+        mw.fill(pygame.Color(199, 21, 133))
 
         ball.create()
         ball.rect.x += dx
