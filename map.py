@@ -275,7 +275,7 @@ def main(username):
         pygame.mixer.music.load('dungeon_musik_2.mp3')
         pygame.mixer.music.play(1)
         pygame.mixer.music.set_volume(0.3)
-    pygame.display.set_caption('Инициализация игры')
+    pygame.display.set_caption('Dungeon')
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
     all_sprites = pygame.sprite.Group()
