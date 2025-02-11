@@ -4,7 +4,6 @@ import sqlite3
 import pygame
 import os
 
-from Prime_1 import load_image
 
 
 def load_image(name, color_key=None):
