@@ -38,11 +38,9 @@ class Map:
         with open(f'{filename}') as input_file:
             for line in input_file:
                 self.map.append(list(map(int, line.split())))
-        #print(self.map)
         self.map = list(reversed(self.map))
         self.current_h = [0, 13]
         self.current_v = [0, 11]
-        #print(self.map)
         self.height = len(self.map)
         self.width = len(self.map[0])
         self.tile_size = tile_size
@@ -57,8 +55,6 @@ class Map:
         for y in range(self.current_v[0], self.current_v[1]):
             w = 0
             for x in range(self.current_h[0], self.current_h[1]):
-                #print((x, y, h, w), self.get_tale_id((x, y - 1)))
-                #rect = pygame.Rect(w * self.tile_size[0], h * self.tile_size[1] - self.tile_size[1], self.tile_size[0], self.tile_size[1])
                 if (x, y - 1) in self.check_chests:
                     rect = images[self.get_tale_id((x, y - 1))].get_rect()
                     rect.x = w * self.tile_size[0]
@@ -71,8 +67,6 @@ class Map:
                     screen.blit(images[self.get_tale_id((x, y - 1))], rect)
                 w += 1
             h += 1
-            #print(f'**** {self.current_v}'
-                  #f'**** {self.current_h}')
 
     def get_tale_id(self, position):
         return self.map[position[1]][position[0]]
@@ -118,18 +112,13 @@ class Map:
         if self.map[self.current_v[0] + y][self.current_h[0] + x] in (3, 4):
             if player:
                 if (self.current_h[0] + x, self.current_v[0] + y) in self.check_chests:
-                    print("A already open chest!!!")
                     pass
                 else:
-                    print("A new chest!!")
-                    print(self.check_chests)
                     cur = self.con.cursor()
                     self.score += 1
                     self.check_chests.append((self.current_h[0] + x, self.current_v[0] + y))
                     cur.execute(f"""update users set points = {self.score} where username is '{self.username}'""")
-                    print(self.check_chests)
                     self.con.commit()
-        #print(self.map[self.current_v[0] + y][self.current_h[0] + x])
         return self.map[self.current_v[0] + y][self.current_h[0] + x]
 
     def give_username(self, username):

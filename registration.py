@@ -40,9 +40,7 @@ class Registration_page(QWidget):
     def check_user_dungeon(self):
         self.username = str(self.username_line_input.text())
         cur = self.con.cursor()
-        print(cur.execute(f"""select username from users_points""").fetchall())
         try:
-            print(cur.execute(f"""select points from users_points where username is '{self.username}'""").fetchone())
             if cur.execute(f"""select points from users_points where username is '{self.username}'""").fetchone() == None:
                 self.mess = QMessageBox.question(self, 'A new user created!', 'New user profile has been created',
                                                  buttons=QMessageBox.StandardButton.Ok)
@@ -75,9 +73,7 @@ class Registration_page(QWidget):
     def check_user_bowling(self):
         self.username = str(self.username_line_input.text())
         cur = self.con.cursor()
-        print(cur.execute(f"""select username from users_points""").fetchall())
         try:
-            print(cur.execute(f"""select points_of_bowling from users_points where username is '{self.username}'""").fetchone())
             if cur.execute(f"""select points_of_bowling from users_points where username is '{self.username}'""").fetchone() == None:
                 self.mess = QMessageBox.question(self, 'A new user created!', 'New user profile has been created',
                                                  buttons=QMessageBox.StandardButton.Ok)
@@ -127,7 +123,7 @@ class Registration_page(QWidget):
             cur = self.con.cursor()
             try:
                 result = cur.execute(f"""select username, points, time from users_points 
-    order by points DESC, time ASC""").fetchall()
+                                            order by points DESC, time ASC""").fetchall()
                 self.tableWidget.setRowCount(len(result))
                 self.tableWidget.setColumnCount(len(result[0]))
                 self.tableWidget.setColumnWidth(0, 295)
@@ -155,7 +151,7 @@ class Registration_page(QWidget):
             cur = self.con.cursor()
             try:
                 result = cur.execute(f"""select username, points_of_bowling from users_points 
-                order by points_of_bowling DESC""").fetchall()
+                                            order by points_of_bowling DESC""").fetchall()
                 self.tableWidget.setRowCount(len(result))
                 self.tableWidget.setColumnCount(len(result[0]))
                 self.tableWidget.setColumnWidth(0, 445)

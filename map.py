@@ -1,6 +1,5 @@
 import sys
 import time
-
 import pygame
 import os
 import pymorphy3
@@ -39,33 +38,33 @@ size = w, h = window_size
 def update(naprav):
     if naprav == 0:
         if labyrinth.update_map_right_left(0):
-            #scelet.move((-1, 0))
+            # scelet.move((-1, 0))
             scelet_enter.x -= 1
             scelet_exit.x -= 1
             main_charecter.x -= 1
-            #main_charecter.move((-1, 0))
+            # main_charecter.move((-1, 0))
 
     elif naprav == 1:
         if labyrinth.update_map_right_left(1):
-            #scelet.move((1, 0))
+            # scelet.move((1, 0))
             scelet_enter.x += 1
             scelet_exit.x += 1
             main_charecter.x += 1
-            #main_charecter.move((1, 0))
+            # main_charecter.move((1, 0))
     elif naprav == 2:
         if labyrinth.update_map_top_bottom(1):
-            #scelet.move((0, 1))
+            # scelet.move((0, 1))
             scelet_enter.y += 1
             scelet_exit.y += 1
             main_charecter.y += 1
-            #main_charecter.move((0, 1))
+            # main_charecter.move((0, 1))
     elif naprav == 3:
         if labyrinth.update_map_top_bottom(0):
-            #scelet.move((0, -1))
+            # scelet.move((0, -1))
             scelet_enter.y -= 1
             scelet_exit.y -= 1
             main_charecter.y -= 1
-            #main_charecter.move((0, -1))
+            # main_charecter.move((0, -1))
 
 
 def terminate():
@@ -98,7 +97,6 @@ def find_quick_path(map, start, end):
     while curr_path[0] != start_path:
         back_to_start_way.append(curr_path[0])
         curr_path = tales[curr_path[1]]
-    # print(back_to_start_way)
     if back_to_start_way:
         return back_to_start_way[-1]
     else:
@@ -111,7 +109,6 @@ def start_screen():
                   "Задача игрока: пройти три зала и выбраться   ",
                   "из подземелья, собирая монеты. При встрече  ",
                   "с противником нужно выбрать: жизнь или кошелек"]
-
 
     fon = pygame.transform.scale(load_image('begin_page.png'), (w, h))
     screen.blit(fon, (0, 0))
@@ -149,9 +146,6 @@ def end_win(username):
     cur = con.cursor()
     coins, time = map(int, (
         cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone()))
-    print(coins, time,
-          cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone(),
-          sep='\n')
     morph = pymorphy3.MorphAnalyzer()
     worda = 'монета'
     parsed_word_coins = morph.parse(worda)[0]
@@ -225,9 +219,6 @@ def end_lose(username):
     cur = con.cursor()
     coins, time = map(int, (
         cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone()))
-    print(coins, time,
-          cur.execute(f"""select points, time from users_points where username in ('{username}')""").fetchone(),
-          sep='\n')
     finalka = pygame.sprite.Group()
     final = load_image('final_page_lose.png')
     final_page = pygame.sprite.Sprite(finalka)
@@ -262,7 +253,8 @@ def end_lose(username):
             screen.blit(string_rendered, intro_rect)
         pygame.display.flip()
 
-#def reset_timer():
+
+# def reset_timer():
 #    global Time_left
 #    Time_left = 180
 
@@ -275,7 +267,9 @@ def main(username):
         pygame.mixer.music.load('dungeon_musik_2.mp3')
         pygame.mixer.music.play(1)
         pygame.mixer.music.set_volume(0.3)
-    pygame.display.set_caption('Инициализация игры')
+    pygame.display.set_caption('Dungeon')
+    icon = pygame.image.load('icon.png')
+    pygame.display.set_icon(icon)
     size = w, h = window_size
     screen = pygame.display.set_mode(size)
     all_sprites = pygame.sprite.Group()
@@ -335,7 +329,6 @@ def main(username):
     MustMoveEnemy = 0
     while running:
         for event in pygame.event.get():
-            # print(event)
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -383,7 +376,6 @@ def main(username):
         cursor_2.rect.y = y
         main_curr_x = main_charecter.get_x()
         main_curr_y = main_charecter.get_y()
-        # print('***')
         next_tale = 0
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -459,7 +451,6 @@ def main(username):
                     if int(main_charecter.get_y()) * tile_size[1] + 99 + 99 <= h:
                         main_charecter.move((0, 1))
                 flag_down = False
-            print(next_tale)
 
             if next_tale == 2:
                 curr_level = (curr_level + 1) % 3
@@ -467,7 +458,6 @@ def main(username):
                 labyrinth = load_level(levels[curr_level])
                 labyrinth.give_username(username)
                 labyrinth.score = score
-                print(curr_level)
                 if curr_level == 1:
                     scelet_enter.x = 18
                     scelet_enter.y = 14
@@ -494,10 +484,6 @@ def main(username):
                 pygame.quit()
                 return 'lose'
 
-            # if final_ready:
-            #    final.rect.x += 0.0083
-            #    print("jhfjg")
-
             MustMoveHero = 0
         else:
             MustMoveHero = MustMoveHero + 1
@@ -521,16 +507,11 @@ def main(username):
                 next_path = find_quick_path(labyrinth, (scelet_enter.get_x(), scelet_enter.get_y()),
                                             (main_charecter.get_x(), main_charecter.get_y()))
                 if next_path:
-                    print(next_path)
                     scelet_enter.move((next_path[0] - scelet_enter.get_x(), next_path[1] - scelet_enter.get_y()))
                     if scelet_enter.get_x() == main_charecter.get_x() and scelet_enter.get_y() == main_charecter.get_y():
                         choise.show()
                         choise_flag = True
-                        print('#########')
                 if choise.get_cur_choise() != None and choise_flag:
-                    print(choise.get_cur_choise())
-                    # while not choise.get_cur_choise():
-                    #    print(choise.get_cur_choise())
                     if choise.get_cur_choise() == 'time':
                         Time_left -= 10
                         choise_flag = False
@@ -588,16 +569,11 @@ def main(username):
                 next_path = find_quick_path(labyrinth, (scelet_exit.get_x(), scelet_exit.get_y()),
                                             (main_charecter.get_x(), main_charecter.get_y()))
                 if next_path:
-                    print(next_path)
                     scelet_exit.move((next_path[0] - scelet_exit.get_x(), next_path[1] - scelet_exit.get_y()))
                     if scelet_exit.get_x() == main_charecter.get_x() and scelet_exit.get_y() == main_charecter.get_y():
                         choise.show()
                         choise_flag = True
-                        print('#########')
                 if choise.get_cur_choise() != None and choise_flag:
-                    print(choise.get_cur_choise())
-                    # while not choise.get_cur_choise():
-                    #    print(choise.get_cur_choise())
                     if choise.get_cur_choise() == 'time':
                         Time_left -= 10
                         choise_flag = False
