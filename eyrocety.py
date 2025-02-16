@@ -63,13 +63,13 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self, player):
         if player.rect.x < self.rect.x:
-            self.rect.x -= 5
+            self.rect.x -= 2
         if player.rect.x > self.rect.x:
-            self.rect.x += 5
+            self.rect.x += 2
         if player.rect.y < self.rect.y:
-            self.rect.y -= 5
+            self.rect.y -= 2
         if player.rect.y > self.rect.y:
-            self.rect.y += 5
+            self.rect.y += 2
 
 class Chest(pygame.sprite.Sprite):
     def __init__(self):
